@@ -1,0 +1,22 @@
+{
+  "seconds": 0.1,
+  "source": "fallback",
+  "rag": {
+    "used": true,
+    "backend": "ready",
+    "examples": [
+      {
+        "id": "ex_qc",
+        "role": "품질관리·검사",
+        "sim": 0.5974
+      },
+      {
+        "id": "ex_maint",
+        "role": "설비보전",
+        "sim": 0.4717
+      }
+    ]
+  },
+  "company": "한빛정밀",
+  "resume_body": "인천 남동구 기반 25년 경력. '검사장비' 경험을 앞세워 한빛정밀의 품질검사 담당 직무에 맞춰 재구성했습니다."
+}

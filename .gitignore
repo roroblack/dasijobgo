@@ -26,7 +26,9 @@ Thumbs.db
 .idea/
 .vscode/
 
-# ── 개인정보·대용량 기획자료(공개 저장소 제외) ──
+# ── 개인정보(공개 저장소 제외) ──
 init_plans/
-output/
-release/
+
+# ── 저장소에 올리지 않는 로컬 작업 문서 ──
+RULE.md
+HISTORY.md
