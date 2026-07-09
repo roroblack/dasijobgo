@@ -1,0 +1,7 @@
+{"model": "jhgan/ko-sroberta-multitask", "dim": 768, "params_note": "", "recall@1": 0.929, "recall@3": 1.0, "mrr": 0.964, "load_s": 5.0, "encode_s": 1.33, "error": null}
+{"model": "nlpai-lab/KURE-v1", "dim": 1024, "params_note": "", "recall@1": 1.0, "recall@3": 1.0, "mrr": 1.0, "load_s": 74.0, "encode_s": 5.39, "error": null}
+{"model": "BAAI/bge-m3", "dim": 1024, "params_note": "", "recall@1": 1.0, "recall@3": 1.0, "mrr": 1.0, "load_s": 74.9, "encode_s": 6.82, "error": null}
+{"model": "dragonkue/bge-m3-ko", "dim": 1024, "params_note": "", "recall@1": 0.929, "recall@3": 1.0, "mrr": 0.964, "load_s": 80.1, "encode_s": 5.32, "error": null}
+{"model": "nlpai-lab/KoE5", "dim": 1024, "params_note": "", "recall@1": 1.0, "recall@3": 1.0, "mrr": 1.0, "load_s": 76.4, "encode_s": 6.09, "error": null}
+{"model": "Qwen/Qwen3-Embedding-0.6B", "dim": 1024, "params_note": "", "recall@1": 0.929, "recall@3": 1.0, "mrr": 0.964, "load_s": 47.8, "encode_s": 29.88, "error": null}
+{"model": "google/embeddinggemma-300m", "error": "GatedRepoError: 401 Client Error. (Request ID: Root=1-6a4ea003-4b3835f1746c4c2c3e3b8754;9ff68ee0-fab5-4f0f-9c41-f10f1c140631)\n\nCannot access gated repo for url https://huggingface.co/google/embeddinggemma-300m/resolve/main/modules.json.\nAccess to model google/embeddinggemma-300m is restricted. You m"}

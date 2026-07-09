@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>다시,출근 — 창업 지원 트랙</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<!-- 접근성: 글자 크기 -->
+<div class="a11y" role="region" aria-label="화면 설정">
+  <span class="lg"><span>글자 크기</span>
+    <button class="fs-btn small" data-fs="15" aria-pressed="false">가</button>
+    <button class="fs-btn" data-fs="17" aria-pressed="true">가</button>
+    <button class="fs-btn large" data-fs="20" aria-pressed="false">가</button>
+  </span>
+  <span id="fsCur" style="color:#8b93a0">보통 (17px)</span>
+  <span style="color:#5c6470">출처:
+    <span class="src-pill src-rule">rule</span><span class="src-pill src-seed">seed</span><span class="src-pill src-fallback">fallback</span>
+  </span>
+</div>
+
+<div class="shell">
+  <div class="topbar">
+    <button class="back" id="backBtn" title="뒤로">←</button>
+    <span class="logo" id="logo">다시,출근</span>
+    <span class="title" id="title" style="display:none"></span>
+    <span class="sp"></span>
+    <span class="prog" id="prog"></span>
+  </div>
+  <div class="pbar"><i id="pbarFill" style="width:8%"></i></div>
+  <main class="main" id="main"></main>
+</div>
+<footer>
+  <span class="fb">다시,출근</span> · 창업 지원 트랙 프로토타입 — 재취업 파이프라인과 동일 아키텍처<br>
+  AI는 후보와 근거까지, 결정과 확신은 사람의 몫 · 모든 수치는 화면 내 출처 병기(예시 seed)
+</footer>
+
+<script src="app.js?v=startup-1"></script>
+</body>
+</html>

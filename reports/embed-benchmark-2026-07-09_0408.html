@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>한국어 임베딩 모델 실측 벤치마크 (2026-07-09)</title>
+<style>
+  :root{--bg:#0f1420;--card:#182234;--card2:#1e2a40;--line:#2b3a55;--tx:#e6edf7;--mut:#93a3bd;
+    --acc:#4da3ff;--good:#37d39b;--warn:#ffb454;--poss:#a98bff;--bad:#ff6b6b;--gold:#ffd34d}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--tx);font:14.5px/1.62 -apple-system,"Segoe UI",Roboto,"Malgun Gothic",sans-serif}
+  .wrap{max-width:1060px;margin:0 auto;padding:30px 22px 80px}
+  h1{font-size:24px;margin:0 0 4px;letter-spacing:-.3px}
+  .sub{color:var(--mut);font-size:13px;margin-bottom:16px}
+  h2{font-size:18px;margin:28px 0 8px;padding-top:15px;border-top:1px solid var(--line)}
+  .lead{color:var(--mut);font-size:13px;margin:2px 0 12px}
+  .tldr{background:linear-gradient(135deg,#1a2b45,#182234);border:1px solid #315a8a;border-radius:14px;padding:16px 18px;margin:16px 0}
+  .tldr b{color:var(--gold)}
+  table{width:100%;border-collapse:collapse;margin:10px 0;font-size:13px}
+  th,td{padding:8px 10px;text-align:left;border-bottom:1px solid var(--line);vertical-align:middle}
+  th{color:var(--mut);font-size:11px;text-transform:uppercase;letter-spacing:.4px;font-weight:600}
+  tr:hover td{background:rgba(255,255,255,.02)}
+  .num{font-variant-numeric:tabular-nums;font-weight:700}
+  .best{color:var(--good)} .mid{color:var(--tx)} .warncol{color:var(--warn)} .badcol{color:var(--bad)}
+  .pill{display:inline-block;padding:1px 8px;border-radius:20px;font-size:10.5px;font-weight:800;white-space:nowrap}
+  .p-win{background:rgba(255,211,77,.16);color:var(--gold)}
+  .p-lite{background:rgba(55,211,155,.16);color:var(--good)}
+  .p-slow{background:rgba(255,180,84,.16);color:var(--warn)}
+  .p-gate{background:rgba(255,107,107,.16);color:var(--bad)}
+  code{background:#0c1220;padding:1px 6px;border-radius:5px;font-size:12px;color:#a8d3ff}
+  .scroll{overflow-x:auto}
+  .note{background:var(--card);border:1px solid var(--line);border-left:3px solid var(--gold);border-radius:0 10px 10px 0;padding:12px 15px;margin:14px 0;font-size:12.5px;color:var(--mut);line-height:1.6}
+  .note.warn{border-left-color:var(--warn)}
+  .note b{color:var(--tx)}
+  .bar{height:20px;border-radius:5px;background:#26344d;overflow:hidden;position:relative;min-width:60px}
+  .bar i{display:block;height:100%;border-radius:5px}
+  ul{margin:6px 0 6px -6px;padding-left:22px}li{margin:3px 0}
+  .foot{color:var(--mut);font-size:11.5px;margin-top:20px;line-height:1.7}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <h1>한국어 임베딩 모델 — 실측 벤치마크</h1>
+  <div class="sub">2026-07-09 04:08 · 실제 모델 다운로드 후 CPU 측정 · 프로브: 「다시,출근」 도메인(재취업·창업 지원사업/인허가/직무) <b>문서 22 · 질의 14</b> · 지표 Recall@1 / Recall@3 / MRR</div>
+
+  <div class="tldr">
+    <b>결론.</b> 실측 결과 <b>정확도는 KURE-v1 · bge-m3 · KoE5가 만점(R@1 1.0)으로 3파전 동률</b>, 나머지도 0.929로 촘촘 — <b>이 소형 프로브로는 순위 변별이 약함(포화)</b>. 대신 <b>속도·게이트에서 뚜렷한 차이</b>가 나옴: <b>Qwen3-0.6B는 CPU 인코딩이 5배 느리고</b>(디코더형), <b>EmbeddingGemma는 게이트(토큰 필요)로 다운로드 자체가 막힘</b>. 실무 판단 → <b>실서버 KURE-v1</b>(정확도 최상+속도 무난), <b>데모/저사양 ko-sroberta</b>(0.929·최경량·최속, 현행 유지 정당). 최종 순위는 더 큰 평가셋으로 재측정 권장.
+  </div>
+
+  <!-- 결과표 -->
+  <h2>실측 결과 (직접 다운로드·CPU 측정)</h2>
+  <div class="scroll"><table>
+    <tr><th>모델</th><th>파라미터</th><th>차원</th><th>Recall@1</th><th>Recall@3</th><th>MRR</th><th>인코딩(36개)</th><th>비고</th></tr>
+    <tr>
+      <td><b>nlpai-lab/KURE-v1</b> <span class="pill p-win">추천</span></td><td class="num">568M</td><td class="num">1024</td>
+      <td class="num best">1.000</td><td class="num best">1.000</td><td class="num best">1.000</td><td class="num">5.4s</td><td>한국어 특화 · 정확도 최상</td></tr>
+    <tr>
+      <td>BAAI/bge-m3</td><td class="num">568M</td><td class="num">1024</td>
+      <td class="num best">1.000</td><td class="num best">1.000</td><td class="num best">1.000</td><td class="num">6.8s</td><td>기존 계획 모델 · 동률</td></tr>
+    <tr>
+      <td>nlpai-lab/KoE5</td><td class="num">560M</td><td class="num">1024</td>
+      <td class="num best">1.000</td><td class="num best">1.000</td><td class="num best">1.000</td><td class="num">6.1s</td><td>e5 한국어 · 동률</td></tr>
+    <tr>
+      <td>dragonkue/bge-m3-ko</td><td class="num">568M</td><td class="num">1024</td>
+      <td class="num mid">0.929</td><td class="num best">1.000</td><td class="num mid">0.964</td><td class="num">5.3s</td><td>bge-m3 한국어 파인튜닝</td></tr>
+    <tr>
+      <td>Qwen/Qwen3-Embedding-0.6B</td><td class="num">600M</td><td class="num">1024</td>
+      <td class="num mid">0.929</td><td class="num best">1.000</td><td class="num mid">0.964</td><td class="num warncol">29.9s ⚠</td><td><span class="pill p-slow">CPU 5배 느림</span> 디코더형</td></tr>
+    <tr>
+      <td>jhgan/ko-sroberta <span class="pill p-lite">최경량</span></td><td class="num">110M</td><td class="num">768</td>
+      <td class="num mid">0.929</td><td class="num best">1.000</td><td class="num mid">0.964</td><td class="num best">1.3s</td><td>현재 데모 기본 · 최속</td></tr>
+    <tr>
+      <td>google/embeddinggemma-300m</td><td class="num">300M</td><td class="num">—</td>
+      <td class="num badcol" colspan="4">게이트(401) — HF 토큰+라이선스 동의 필요, <b>미측정</b> <span class="pill p-gate">GATED</span></td></tr>
+  </table></div>
+  <div class="lead">인코딩 시간 = 모델 로드 후 문서 22 + 질의 14 = 36개를 CPU로 임베딩한 실측(로드/다운로드 시간 제외). 낮을수록 빠름.</div>
+
+  <!-- 속도 시각화 -->
+  <h2>인코딩 속도 (CPU, 36개 임베딩) — 차이가 뚜렷한 지표</h2>
+  <div class="scroll"><table>
+    <tr><td style="width:170px">ko-sroberta (110M)</td><td><div class="bar"><i style="width:4%;background:var(--good)"></i></div></td><td class="num best">1.3s</td></tr>
+    <tr><td>bge-m3-ko</td><td><div class="bar"><i style="width:18%;background:var(--acc)"></i></div></td><td class="num">5.3s</td></tr>
+    <tr><td>KURE-v1</td><td><div class="bar"><i style="width:18%;background:var(--acc)"></i></div></td><td class="num">5.4s</td></tr>
+    <tr><td>KoE5</td><td><div class="bar"><i style="width:20%;background:var(--acc)"></i></div></td><td class="num">6.1s</td></tr>
+    <tr><td>bge-m3</td><td><div class="bar"><i style="width:23%;background:var(--acc)"></i></div></td><td class="num">6.8s</td></tr>
+    <tr><td>Qwen3-Embedding-0.6B</td><td><div class="bar"><i style="width:100%;background:var(--warn)"></i></div></td><td class="num warncol">29.9s</td></tr>
+  </table></div>
+  <div class="note warn"><b>핵심 실측 발견:</b> Qwen3-Embedding-0.6B는 <b>인코더형(BERT류)이 아니라 디코더형(LLM류) 임베더</b>라 CPU에서 <b>5배 이상 느립니다</b>(29.9s vs ~5-6s). 정확도는 준수하나 <b>CPU 서버(Oracle 무료 등)엔 부적합</b>, GPU 있을 때만 유리. 리더보드 다국어 1위지만 우리 배포 환경(CPU)에선 이 속도가 발목.</div>
+
+  <!-- 정직한 한계 -->
+  <h2>정직한 한계 — 왜 정확도로 순위를 못 가리나</h2>
+  <div class="note"><b>프로브가 포화됨.</b> 상위 3개(KURE-v1·bge-m3·KoE5)가 <b>R@1 1.0 만점</b>이고 나머지도 0.929(14문항 중 1개만 오답), <b>R@3는 전원 1.0</b>(정답이 항상 top-3 안). → 현대 한국어 임베딩 모델은 <b>명확한 도메인 질의엔 다 강해서</b>, 22문서·14질의 소형 프로브로는 미세 순위가 안 갈림. <b>"KURE가 확실히 1등"이라고 이 데이터로 단정 불가</b> — bge-m3·KoE5도 동일 만점.
+    <br><br><b>제대로 가리려면:</b> ① 문서 수백~수천 규모 ② 실제 인허가·지원사업 원문 ③ 더 어려운(모호한) 질의로 확장한 평가셋 필요. 우리 <code>finetune/eval</code> 하네스 + 공공데이터 실코퍼스로 실서버에서 재측정하는 게 정답.</div>
+
+  <!-- 실무 결론 -->
+  <h2>실무 결론 (실측 반영)</h2>
+  <div class="scroll"><table>
+    <tr><th>기준</th><th>승자</th><th>근거(실측)</th></tr>
+    <tr><td>정확도(도메인 검색)</td><td><b>KURE-v1 · bge-m3 · KoE5</b> (동률)</td><td>R@1 1.0 · MRR 1.0</td></tr>
+    <tr><td>속도·경량(CPU)</td><td><b>ko-sroberta</b></td><td>1.3s · 110M, 정확도 0.929로 준수</td></tr>
+    <tr><td>정확도+속도 균형</td><td><b>KURE-v1</b></td><td>1.0 정확도 + 5.4s(무난)</td></tr>
+    <tr><td>피해야 할 것(CPU)</td><td>Qwen3-0.6B</td><td>29.9s(5배 느림) — GPU 아니면 비추</td></tr>
+    <tr><td>보류(재측정)</td><td>EmbeddingGemma</td><td>게이트로 미측정 → 토큰 확보 후</td></tr>
+  </table></div>
+
+  <div class="note"><b>최종 권고:</b> <b>실서버(Oracle 24GB) = KURE-v1</b>(정확도 최상+CPU 속도 무난, 다운로드 후 상주). <b>데모/저사양 = ko-sroberta 현행 유지 정당</b>(0.929로 충분·초경량) 또는 KURE-v1. <b>bge-m3/KoE5도 동급</b>이라 이미 익숙하면 그대로 써도 무방. <b>Qwen3는 CPU 속도 때문에 제외</b>(GPU 배포 시 재고려). 스택 표기: <code>KURE-v1(주) · ko-sroberta(경량) · bge-m3/KoE5(동급 대안)</code>.</div>
+
+  <div class="foot">
+    측정: sentence-transformers 5.6 · torch 2.13 CPU · transformers 5.13 · 모델별 다운로드→측정→삭제(디스크 11.9GB 제약). 각 모델 관례 반영(e5계열 query:/passage: 프리픽스, 그 외 모델 프롬프트 자동적용). 코사인 유사도(정규화).<br>
+    스크립트: <code>dasi-chulgeun/experiments/embed_bench.py</code> · 원자료: <code>embed_bench_results.jsonl</code><br>
+    ⚠️ 소형 도메인 프로브(22문서·14질의) = 상대비교·포화 확인용. 공식 MTEB 아님. EmbeddingGemma는 게이트로 미측정.
+  </div>
+
+</div>
+</body>
+</html>

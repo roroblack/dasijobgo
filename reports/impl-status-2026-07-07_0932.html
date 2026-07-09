@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>다시,출근 — 구현 현황 대시보드 (STT·TTS·웹캠·NCS 반영)</title>
+<style>
+:root{
+  --bg:#EAE6DD;--ink:#1B1F26;--ink2:#48505C;--ink3:#79808C;--line:#DDD8CC;--card:#fff;
+  --brand:#1A4A5A;--brand-tint:#E1ECEF;--apricot:#D97B2E;--apricot-tint:#FBEAD6;
+  --sage:#3F7350;--sage-tint:#E1EDE3;--muted-tint:#F2EFE8;--disp:'Gowun Batang',serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Pretendard','Apple SD Gothic Neo',system-ui,sans-serif;background:var(--bg);color:var(--ink);line-height:1.6;padding:40px 20px 80px}
+.wrap{max-width:1000px;margin:0 auto}
+.tag{display:inline-flex;align-items:center;gap:8px;font-size:.78rem;font-weight:700;color:var(--brand);background:var(--brand-tint);border:1px solid #CFE0E3;padding:6px 14px;border-radius:100px}
+h1{font-family:var(--disp);font-size:clamp(24px,3vw,34px);margin:14px 0 6px;line-height:1.25}
+h1 .em{color:var(--brand)}
+.sub{color:var(--ink2);font-size:.95rem;max-width:730px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:22px 24px;margin-top:22px}
+h2{font-size:1.15rem;margin-bottom:6px;display:flex;align-items:center;gap:9px}
+h2 .n{width:26px;height:26px;border-radius:8px;background:var(--brand);color:#fff;font-size:.8rem;display:flex;align-items:center;justify-content:center;font-family:var(--disp)}
+.note{font-size:.84rem;color:var(--ink3);margin-bottom:14px}
+.legend{display:flex;flex-wrap:wrap;gap:16px;margin-bottom:18px}
+.legend span{display:inline-flex;align-items:center;gap:7px;font-size:.82rem;color:var(--ink2)}
+.legend i{width:13px;height:13px;border-radius:4px;display:inline-block}
+.seclab{font-size:.82rem;font-weight:700;color:var(--ink3);margin:18px 0 9px}
+.bars{display:flex;flex-direction:column;gap:11px}
+.bar{display:flex;align-items:center;gap:12px;font-size:.86rem}
+.bar .bl{width:170px;color:var(--ink)}
+.bar .bt{flex:1;height:11px;background:var(--muted-tint);border-radius:100px;overflow:hidden}
+.bar .bt i{display:block;height:100%;background:var(--brand);border-radius:100px}
+.bar .bv{width:38px;text-align:right;color:var(--ink2);font-weight:700}
+.grid{display:grid;gap:9px}
+.g12{grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}
+.g5{grid-template-columns:repeat(auto-fit,minmax(118px,1fr))}
+.chip{border-radius:10px;padding:10px 12px;display:flex;flex-direction:column;gap:3px}
+.chip .ct{font-size:.72rem;font-weight:700;display:flex;align-items:center;gap:5px}
+.chip .cn{font-size:.86rem;color:var(--ink)}
+.layers{display:grid;grid-template-columns:repeat(auto-fit,minmax(285px,1fr));gap:0 26px}
+.lrow{display:flex;align-items:center;gap:9px;font-size:.86rem;padding:8px 0;border-bottom:1px solid var(--line)}
+.lrow .ld{width:10px;height:10px;border-radius:50%;flex:0 0 auto}
+.lrow .lt{margin-left:auto;font-size:.74rem;font-weight:700;padding:3px 9px;border-radius:100px}
+.s-real{background:var(--sage-tint);color:var(--sage)} .s-partial{background:var(--brand-tint);color:var(--brand)}
+.s-seed{background:var(--apricot-tint);color:var(--apricot)} .s-none{background:var(--muted-tint);color:var(--ink3)}
+.d-real{background:var(--sage)}.d-partial{background:var(--brand)}.d-seed{background:var(--apricot)}.d-none{background:var(--ink3)}
+ul{margin:6px 0 0 18px;font-size:.88rem;color:var(--ink2);line-height:1.75}
+ul b{color:var(--ink)} li code,p code{font-family:'JetBrains Mono',ui-monospace,monospace;font-size:.82em;background:var(--muted-tint);padding:1px 6px;border-radius:5px;color:var(--brand)}
+.callout{background:var(--sage-tint);border:1px solid #C6DCC9;border-left:4px solid var(--sage);border-radius:0 12px 12px 0;padding:13px 16px;font-size:.88rem;color:var(--ink);line-height:1.6;margin-top:6px}
+.warn{background:var(--apricot-tint);border:1px solid #EAD3A9;border-radius:12px;padding:13px 16px;font-size:.85rem;color:var(--ink2);line-height:1.6;margin-top:14px}
+footer{text-align:center;color:var(--ink3);font-size:.8rem;margin-top:36px;line-height:1.7}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="tag">● 구현 현황 대시보드 · 2026-07-07 09:32</div>
+  <h1><span class="em">다시,출근</span> — 미구현 채우기 ①~⑤ 반영 현황</h1>
+  <p class="sub">설계(3대 축 · 화면 12단계 · 기능 계층) 대비 실제 코드 상태. 이번 배치로 <b>역량 근거추출(NCS)·STT·TTS·마이크 배선·웹캠 녹화</b>가 구현됨(앞선 LLM 로컬+RAG 포함). 진행률 %는 코드 기준 추정.</p>
+
+  <div class="card">
+    <h2><span class="n">✓</span>이번 배치 — 미구현 → 구현 (실동작 검증)</h2>
+    <ul>
+      <li><b>① 역량 근거추출 (NCS rubric)</b> — <code>domain/rubric.py</code>: 답변 텍스트 → 5축 지표 밀도 점수 + 근거 문장, 정량화 축은 숫자 유무 판정 → <code>/interview/analyze-answer</code>. <b>pytest 11/11</b>. 결정론(RULE §3.3).</li>
+      <li><b>② STT 음성 입력 (서버측 실모델)</b> — <code>/stt</code> = <b>faster-whisper</b>(CPU·int8). 검증: 한국어 음성(webm/opus) → 전사 "…품질 관리를 25년 했습니다". <span style="color:var(--sage);font-weight:700">전사는 프론트가 아니라 서버에서 수행.</span></li>
+      <li><b>③ TTS 아바타 발화</b> — STEP 8 아바타가 질문을 브라우저 <code>speechSynthesis</code>(한국어)로 읽음(검증: 실제 발화).</li>
+      <li><b>④ 마이크 배선</b> — STEP 1 마이크 = <code>getUserMedia</code>+<code>MediaRecorder</code> 녹음 → <code>/stt</code> 전사 → 칩 자동 매칭. 짧음/무음 가드.</li>
+      <li><b>⑤ 웹캠 녹화</b> — STEP 7 실제 카메라 미리보기·장치상태, STEP 8 라이브 셀프뷰 + <code>MediaRecorder</code> 답변 녹화. 장치 없으면 폴백.</li>
+      <li><b>(앞서)</b> LLM 문장 생성 로컬 GGUF(Gemma-4-E4B, <code>source=local</code>) · RAG 임베딩 검색(유사도 임계값).</li>
+    </ul>
+    <div class="callout"><b>STT 아키텍처</b>: 프론트는 녹음→업로드만, <b>전사는 서버 faster-whisper</b>. "(안 들렸어요)"는 그 녹음이 짧/무음일 때의 폴백 — webm/opus 서버 전사는 정상 검증됨(디코딩 버그 아님).</div>
+    <div class="warn">⚠️ 전부 <b>env-gated</b>(모델·장치 없으면 폴백, 데모 지속). 프리뷰(무장치)에선 폴백 경로만 자동검증 — 실제 마이크/카메라 캡처는 실기기 필요. 신경망 TTS·아바타 립싱크는 GPU 필요로 잔존.</div>
+  </div>
+
+  <div class="card">
+    <h2><span class="n">▤</span>구현 현황 대시보드</h2>
+    <div class="legend" id="legend"></div>
+    <div class="seclab">설계 3대 축 · 대략 진행률 (①~⑤ 반영 · 추정)</div>
+    <div class="bars" id="bars"></div>
+    <div class="seclab">구직자 화면 흐름 (설계 12단계)</div>
+    <div class="grid g12" id="seeker"></div>
+    <div class="seclab">기업(채용담당) 화면 (설계 5단계)</div>
+    <div class="grid g5" id="company"></div>
+    <div class="seclab">핵심 기능 계층 (★ 이번: NCS 근거추출·STT·TTS·웹캠)</div>
+    <div class="layers" id="layers"></div>
+  </div>
+
+  <div class="card">
+    <h2><span class="n">→</span>남은 부족분</h2>
+    <ul>
+      <li><b>아바타 립싱크 · 신경망 TTS(Qwen3-TTS 등)</b> — GPU 필요, 이 노트북 불가</li>
+      <li><b>기업 클라이언트 5화면</b> · <b>DB(PostgreSQL + pgvector)</b> — 구현 가능(다음 후보)</li>
+      <li><b>STEP 9 피드백</b> — 백엔드 NCS 근거추출은 실제이나, 프론트가 아직 하드코딩 신호 사용(배선 필요)</li>
+      <li><b>외부 API</b>(고용24·국세청·내일배움카드·Google) — 자격증명/승인 막힘</li>
+    </ul>
+  </div>
+
+  <footer>다시,출근 · 구현 현황 · 2026-07-07 09:32 (로컬)<br>근거: <code>HISTORY.md</code> · <code>reports/final-model-eval-2026-07-06_1758.md</code> · <code>output/integration_full.json</code></footer>
+</div>
+<script>
+const S={real:{c:'s-real',d:'d-real',lab:'실제'},partial:{c:'s-partial',d:'d-partial',lab:'부분'},seed:{c:'s-seed',d:'d-seed',lab:'seed'},none:{c:'s-none',d:'d-none',lab:'미구현'}};
+const LEG={real:'실제 (결정론·백엔드·실모델)',partial:'부분 (일부 동작)',seed:'seed·폴백',none:'미구현'};
+const seeker=[['시작','정부지원','seed'],['STEP 1','온보딩·STT','real'],['STEP 1.5','이력서 확인','seed'],
+ ['STEP 2','실시간 매칭','real'],['STEP 3','장바구니','seed'],['STEP 4','맞춤 이력서','real'],
+ ['STEP 5','확인·제출','seed'],['STEP 7','면접 준비·카메라','real'],['STEP 8','아바타 면접·녹화','partial'],
+ ['STEP 9','피드백·대기','seed'],['STEP 6','실면접 일정','real'],['STEP 10','교육·재지원','seed']];
+const company=[['기업 1','가입'],['기업 2','질문 작성'],['기업 3','지원자 검토'],['기업 4','일정·출근'],['기업 5','결과']];
+const bars=[['PART 1 · 진입·서류',72],['PART 2 · 가상 면접',48],['PART 3 · 성장 루프',58],['기업 화면',0]];
+const layers=[['클린아키텍처 골격','real'],['매칭 점수 (결정론)','real'],['일정 교집합 (결정론)','real'],
+ ['역량 등급 (결정론)','real'],['응답봉투·출처표기','real'],['면접 질문 생성','real'],
+ ['LLM 문장 생성 (로컬 GGUF)','real'],['RAG 임베딩 검색','real'],['역량 근거추출 (NCS rubric)','real'],
+ ['STT 음성입력 (faster-whisper·서버)','real'],['웹캠 녹화 (MediaRecorder)','real'],['TTS 아바타 발화 (브라우저)','partial'],
+ ['아바타 립싱크','none'],['공고·훈련 데이터','seed'],['외부 API 연동','none'],['DB (PostgreSQL)','none'],['기업 클라이언트','none']];
+document.getElementById('legend').innerHTML=Object.keys(LEG).map(k=>`<span><i class="${S[k].d}"></i>${LEG[k]}</span>`).join('');
+document.getElementById('bars').innerHTML=bars.map(([l,v])=>`<div class="bar"><span class="bl">${l}</span><span class="bt"><i style="width:${v}%"></i></span><span class="bv">${v}%</span></div>`).join('');
+const chip=(t,n,s)=>`<div class="chip ${S[s].c}"><span class="ct">${t}</span><span class="cn">${n}</span></div>`;
+document.getElementById('seeker').innerHTML=seeker.map(r=>chip(r[0],r[1],r[2])).join('');
+document.getElementById('company').innerHTML=company.map(r=>chip(r[0],r[1],'none')).join('');
+document.getElementById('layers').innerHTML=layers.map(([l,s])=>`<div class="lrow"><span class="ld ${S[s].d}"></span><span>${l}</span><span class="lt ${S[s].c}">${S[s].lab}</span></div>`).join('');
+</script>
+</body>
+</html>

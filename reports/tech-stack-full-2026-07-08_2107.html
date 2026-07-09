@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>다시,출근 — 전체 기술스택 정리 (2026-07-08)</title>
+<style>
+  :root{--bg:#0f1420;--card:#182234;--card2:#1e2a40;--line:#2b3a55;--tx:#e6edf7;--mut:#93a3bd;
+    --acc:#4da3ff;--used:#37d39b;--plan:#ffb454;--poss:#a98bff;--bad:#ff6b6b;--gold:#ffd34d}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--tx);font:14.5px/1.62 -apple-system,"Segoe UI",Roboto,"Malgun Gothic",sans-serif}
+  .wrap{max-width:1120px;margin:0 auto;padding:30px 22px 80px}
+  h1{font-size:25px;margin:0 0 4px;letter-spacing:-.3px}
+  .sub{color:var(--mut);font-size:13px;margin-bottom:18px}
+  h2{font-size:18px;margin:30px 0 6px;padding-top:15px;border-top:1px solid var(--line);display:flex;align-items:center;gap:9px}
+  h2 .ic{font-size:19px}
+  .lead{color:var(--mut);font-size:13px;margin:2px 0 12px}
+  .legend{display:flex;gap:14px;flex-wrap:wrap;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 16px;margin:16px 0 8px}
+  .legend .lg{display:flex;align-items:center;gap:7px;font-size:12.5px;color:var(--mut)}
+  .dot{width:11px;height:11px;border-radius:50%;flex:none}
+  .d-used{background:var(--used)}.d-plan{background:var(--plan)}.d-poss{background:var(--poss)}
+  table{width:100%;border-collapse:collapse;margin:8px 0 4px;font-size:13px}
+  th,td{padding:8px 10px;text-align:left;border-bottom:1px solid var(--line);vertical-align:top}
+  th{color:var(--mut);font-size:11px;text-transform:uppercase;letter-spacing:.4px;font-weight:600}
+  tr:hover td{background:rgba(255,255,255,.02)}
+  .tag{display:inline-block;padding:1px 8px;border-radius:20px;font-size:10.5px;font-weight:800;white-space:nowrap}
+  .t-used{background:rgba(55,211,155,.16);color:var(--used)}
+  .t-plan{background:rgba(255,180,84,.16);color:var(--plan)}
+  .t-poss{background:rgba(169,139,255,.16);color:var(--poss)}
+  .v{font-variant-numeric:tabular-nums;color:var(--acc);font-weight:600;font-size:12px}
+  code{background:#0c1220;padding:1px 6px;border-radius:5px;font-size:12px;color:#a8d3ff}
+  .scroll{overflow-x:auto}
+  .note{background:var(--card);border:1px solid var(--line);border-left:3px solid var(--gold);border-radius:0 10px 10px 0;padding:12px 15px;margin:14px 0;font-size:12.5px;color:var(--mut);line-height:1.6}
+  .note b{color:var(--tx)}
+  .kpi{display:flex;gap:10px;flex-wrap:wrap;margin:16px 0}
+  .kpi .k{flex:1;min-width:130px;background:var(--card2);border:1px solid var(--line);border-radius:10px;padding:11px 13px}
+  .kpi .n{font-size:21px;font-weight:800;font-variant-numeric:tabular-nums}
+  .kpi .l{color:var(--mut);font-size:11.5px}
+  .foot{color:var(--mut);font-size:11.5px;margin-top:20px;line-height:1.6}
+  a{color:var(--acc)}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <h1>다시,출근 — 전체 기술스택 정리</h1>
+  <div class="sub">2026-07-08 21:07 · 재취업 트랙(dasi-chulgeun) + 창업 트랙(dasi-startup) + STT 파인튜닝 트랙 + 리서치 결정 종합</div>
+
+  <div class="kpi">
+    <div class="k"><div class="n" style="color:var(--used)">사용됨</div><div class="l">코드에 구현·구동/검증 완료</div></div>
+    <div class="k"><div class="n" style="color:var(--plan)">사용 예정</div><div class="l">결정됨·실서비스 전환 시 투입</div></div>
+    <div class="k"><div class="n" style="color:var(--poss)">사용 가능</div><div class="l">평가·조사한 대안/후보</div></div>
+  </div>
+  <div class="legend">
+    <span class="lg"><span class="dot d-used"></span><b style="color:var(--used)">사용됨</b> — 지금 코드/런타임에 있음</span>
+    <span class="lg"><span class="dot d-plan"></span><b style="color:var(--plan)">사용 예정</b> — 로드맵에 확정</span>
+    <span class="lg"><span class="dot d-poss"></span><b style="color:var(--poss)">사용 가능</b> — 대안으로 검토됨</span>
+  </div>
+
+  <div class="note">공통 원칙(RULE §3.3): <b>결정론 로직(매칭·적합도·필터·일정·역량)은 순수 파이썬</b>, LLM은 <b>언어 계층(문장·질문 생성)에만</b>. 외부 의존성은 <b>env-gate + 우아한 폴백</b>(없어도 구동) — 응답 <code>meta.source ∈ {live, seed, rule, local, fallback}</code>로 출처를 항상 표기.</div>
+
+  <!-- ── 1. 프론트엔드 ── -->
+  <h2><span class="ic">🖥️</span> 1. 프론트엔드</h2>
+  <div class="lead">프레임워크 없는 정적 SPA — "불필요한 트렌디 기술 감점" 심사 기준 대응. 두 트랙 공통 패턴.</div>
+  <div class="scroll"><table>
+    <tr><th>기술</th><th>버전/형태</th><th>역할</th><th>상태</th></tr>
+    <tr><td>Vanilla JS (ES6+)</td><td>무프레임워크</td><td>SPA 라우팅·렌더·상태(RENDER 맵, goto/history)</td><td><span class="tag t-used">사용됨</span></td></tr>
+    <tr><td>HTML5 / CSS3</td><td>—</td><td>반응형 레이아웃, CSS 변수 테마, 접근성 글자크기 토글</td><td><span class="tag t-used">사용됨</span></td></tr>
+    <tr><td>Fetch API</td><td>내장</td><td><code>{ok,data,meta,error}</code> 봉투 호출</td><td><span class="tag t-used">사용됨</span></td></tr>
+    <tr><td>getUserMedia / MediaRecorder</td><td>내장</td><td>마이크 녹음·웹캠(면접), webm/opus 캡처</td><td><span class="tag t-used">사용됨</span></td></tr>
+    <tr><td>Web Audio API (AnalyserNode)</td><td>내장</td><td>VAD 발화단위 감지(RMS 음량)</td><td><span class="tag t-used">사용됨</span></td></tr>
+    <tr><td>Web Speech (speechSynthesis)</td><td>내장</td><td>상담사/아바타 TTS 음성 안내</td><td><span class="tag t-used">사용됨</span></td></tr>
+    <tr><td>Pretendard · Gowun Batang</td><td>CDN 폰트</td><td>본문/디스플레이 서체(창업 트랙 목업 디자인)</td><td><span class="tag t-used">사용됨</span></td></tr>
+    <tr><td><b>React(Next.js) 또는 Svelte(Kit)</b></td><td>프레임워크</td><td>실서비스 프론트 — 컴포넌트 재사용·팀개발·유지보수. 데모는 바닐라 유지</td><td><span class="tag t-plan">사용 예정</span></td></tr>
+    <tr><td>신경망 TTS(Qwen3-TTS 등)</td><td>GPU/클라우드</td><td>브라우저 TTS 대체 — CPU 로컬 불가 판정(2026-07)</td><td><span class="tag t-poss">사용 가능</span></td></tr>
+  </table></div>
+  <div class="note"><b>실서비스 프론트 프레임워크 — 미정(둘 중 택1):</b> <b>React(Next.js)</b> = 생태계 최대·인력 많음·SSR로 초기로딩/SEO 유리(무난한 기본값) vs <b>Svelte(Kit)</b> = 번들 최소·가장 빠름(중장년 저사양 기기엔 오히려 유리). <b>데모/해커톤은 바닐라 JS 유지</b>("불필요한 트렌디 기술 감점" 회피 + 설계 성숙도). 현재 바닐라 SPA 구조(화면별 RENDER·<code>api()</code>·<code>S</code> 상태)가 컴포넌트+hooks에 1:1 매핑돼 전환은 재작성이 아닌 번역 수준. React Native/Flutter는 네이티브 모바일 앱 낼 때만.</div>
+
+  <!-- ── 2. 백엔드/아키텍처 ── -->
+  <h2><span class="ic">⚙️</span> 2. 백엔드 · 아키텍처</h2>
+  <div class="lead">클린 아키텍처 FastAPI(domain/application/infrastructure/interfaces). GAJIMA 참조 프로젝트 미러링.</div>
+  <div class="scroll"><table>
+    <tr><th>기술</th><th>버전</th><th>역할</th><th>상태</th></tr>
+    <tr><td>Python</td><td>3.12+</td><td>런타임</td><td><span class="tag t-used">사용됨</span></td></tr>
+    <tr><td>FastAPI</td><td class="v">0.138.0</td><td>API 서버 · 라우터 · 예외→봉투</td><td><span class="tag t-used">사용됨</span></td></tr>
+    <tr><td>Uvicorn[standard]</td><td class="v">0.49.0</td><td>ASGI 서버(8090 재취업 / 8091 창업)</td><td><span class="tag t-used">사용됨</span></td></tr>
+    <tr><td>Pydantic</td><td class="v">2.13.4</td><td>요청 스키마 검증</td><td><span class="tag t-used">사용됨</span></td></tr>
+    <tr><td>Starlette StaticFiles</td><td>내장</td><td>정적 프론트 마운트(같은 오리진)</td><td><span class="tag t-used">사용됨</span></td></tr>
+    <tr><td>in-memory store</td><td>자체</td><td>세션 저장(프로토타입, DB 폴백)</td><td><span class="tag t-used">사용됨</span></td></tr>
+    <tr><td>pytest</td><td class="v">8.3.4</td><td>결정론 도메인 단위 테스트(재취업 12·창업 5)</td><td><span class="tag t-used">사용됨</span></td></tr>
+  </table></div>
+
+  <!-- ── 3. 데이터베이스 ── -->
+  <h2><span class="ic">🗄️</span> 3. 데이터베이스</h2>
+  <div class="scroll"><table>
+    <tr><th>기술</th><th>형태</th><th>역할</th><th>상태</th></tr>
+    <tr><td>in-memory (dict)</td><td>프로세스 메모리</td><td>현재 세션 저장 — 재시작 시 초기화(데모용)</td><td><span class="tag t-used">사용됨</span></td></tr>
+    <tr><td><b>PostgreSQL</b></td><td>RDBMS</td><td>세션·프로필·매칭 결과 영속화(관계형·트랜잭션·JSONB)</td><td><span class="tag t-plan">사용 예정</span></td></tr>
+    <tr><td><b>pgvector</b></td><td>PG 확장</td><td>임베딩 벡터 저장·검색(RAG를 같은 DB에서)</td><td><span class="tag t-plan">사용 예정</span></td></tr>
+    <tr><td>전용 벡터DB(Pinecone/Weaviate 등)</td><td>SaaS/OSS</td><td>대안 — 규모 커지면. 현재는 pgvector로 충분 판단</td><td><span class="tag t-poss">사용 가능</span></td></tr>
+  </table></div>
+  <div class="note"><b>왜 PostgreSQL(+pgvector):</b> 관계형 무결성(프로필·지원·일정)이 핵심 + 벡터검색을 별도 인프라 없이 한 DB에서 처리 → MongoDB(스키마리스 불필요)·그래프DB(관계 단순)·컬럼형(분석 아님)보다 적합하다고 세션에서 결론.</div>
+
+  <!-- ── 4. STT 음성인식 ── -->
+  <h2><span class="ic">🎙️</span> 4. STT (음성인식)</h2>
+  <div class="lead">faster-whisper가 현재 활성 엔진. 한국어 정확도 리서치로 모델·파라미터를 튜닝(base→large-v3).</div>
+  <div class="scroll"><table>
+    <tr><th>기술</th><th>버전/모델</th><th>역할</th><th>상태</th></tr>
+    <tr><td><b>faster-whisper</b></td><td class="v">1.2.1</td><td>STT 엔진(CPU/int8). 서버 <code>/stt</code> 구동 중</td><td><span class="tag t-used">사용됨</span></td></tr>
+    <tr><td>CTranslate2</td><td class="v">4.8.1</td><td>faster-whisper 추론 백엔드</td><td><span class="tag t-used">사용됨</span></td></tr>
+    <tr><td>모델: <b>large-v3</b></td><td>기본값</td><td>한국어 반복환각 최소(turbo 대비). small→turbo→large-v3 진화</td><td><span class="tag t-used">사용됨</span></td></tr>
+    <tr><td>PyAV (av)</td><td class="v">18.0.0</td><td>webm/opus 오디오 디코딩</td><td><span class="tag t-used">사용됨</span></td></tr>
+    <tr><td>onnxruntime</td><td class="v">1.27.0</td><td>Silero VAD 필터 실행</td><td><span class="tag t-used">사용됨</span></td></tr>
+    <tr><td>디코딩 가드</td><td>파라미터</td><td>initial_prompt·compression_ratio·temperature 폴백·no_speech (환각 억제)</td><td><span class="tag t-used">사용됨</span></td></tr>
+    <tr><td>모델 medium / small</td><td>대안</td><td>속도(medium ~2배)·저RAM(small) 폴백 — env 한 줄</td><td><span class="tag t-poss">사용 가능</span></td></tr>
+    <tr><td><b>RTZR(리턴제로) API</b></td><td>국산 상용</td><td>한국어 CER 5.9%(Whisper의 절반)·간투어제거·키워드부스팅·국내서버. 데모 정확도 1순위 후보</td><td><span class="tag t-poss">사용 가능</span></td></tr>
+    <tr><td>네이버 CLOVA Speech</td><td>국산 상용</td><td>CER 7.5%·국내서버 대안</td><td><span class="tag t-poss">사용 가능</span></td></tr>
+    <tr><td>gpt-4o-transcribe / ElevenLabs Scribe / Deepgram</td><td>해외 API</td><td>정확도↑이나 미국서버(PII 유의)</td><td><span class="tag t-poss">사용 가능</span></td></tr>
+    <tr><td>SenseVoice</td><td>로컬</td><td>CJK 특화이나 짧은/조용한 오디오 중국어 오출력 결함 → 제외</td><td><span class="tag t-poss">사용 가능</span></td></tr>
+    <tr><td>Qwen3-ASR / Gemma4-audio</td><td>GPU</td><td>무GPU 랩탑 부적합 판정(2026-07)</td><td><span class="tag t-poss">사용 가능</span></td></tr>
+  </table></div>
+
+  <!-- ── 5. STT 파인튜닝 트랙 ── -->
+  <h2><span class="ic">🧪</span> 5. STT 파인튜닝 파이프라인 (finetune/)</h2>
+  <div class="lead">중장년(55+) 발화 특화 목표. 측정 하네스·정규화는 검증 완료, 학습은 데이터·GPU 확보 후.</div>
+  <div class="scroll"><table>
+    <tr><th>기술</th><th>형태</th><th>역할</th><th>상태</th></tr>
+    <tr><td>CER 측정 하네스 · KsponSpeech 정규화</td><td>순수 파이썬</td><td>"일반 8% → 55+ X%" 실측 도구(전/후 공용)</td><td><span class="tag t-used">사용됨</span></td></tr>
+    <tr><td>HF Transformers + PEFT(LoRA)</td><td>스크립트</td><td>whisper-medium LoRA 파인튜닝(Colab T4)</td><td><span class="tag t-plan">사용 예정</span></td></tr>
+    <tr><td>bitsandbytes(8bit) · accelerate</td><td>학습</td><td>T4 메모리 절약</td><td><span class="tag t-plan">사용 예정</span></td></tr>
+    <tr><td>ct2-transformers-converter</td><td>변환</td><td>학습 산출 → faster-whisper(CT2) 백엔드로 투입</td><td><span class="tag t-plan">사용 예정</span></td></tr>
+    <tr><td>AI-Hub KsponSpeech(71592)</td><td>데이터셋</td><td>연령필터 학습/평가 데이터(다운로드 대기)</td><td><span class="tag t-plan">사용 예정</span></td></tr>
+    <tr><td>Google Colab(무료 T4)</td><td>학습 환경</td><td>무GPU 랩탑 대체 학습 인프라</td><td><span class="tag t-plan">사용 예정</span></td></tr>
+    <tr><td>드롭인 한국어 Whisper(ghost613 등)</td><td>HF 모델</td><td>학습 없이 교체(자유발화 학습본 선정 필요)</td><td><span class="tag t-poss">사용 가능</span></td></tr>
+    <tr><td>jiwer</td><td>라이브러리</td><td>대규모 CER 가속(현재 순수파이썬으로 대체)</td><td><span class="tag t-poss">사용 가능</span></td></tr>
+  </table></div>
+
+  <!-- ── 6. LLM 언어 계층 ── -->
+  <h2><span class="ic">🤖</span> 6. LLM (언어 계층)</h2>
+  <div class="lead">우선순위: 로컬 GGUF → Anthropic API → 템플릿 폴백. 문장·질문 생성에만 사용(판정은 규칙).</div>
+  <div class="scroll"><table>
+    <tr><th>기술/모델</th><th>형태</th><th>역할·결과</th><th>상태</th></tr>
+    <tr><td>템플릿 폴백</td><td>자체</td><td>키/모델 없을 때 문장 생성(현재 기본 <code>source:fallback</code>)</td><td><span class="tag t-used">사용됨</span></td></tr>
+    <tr><td>llama-cpp-python (로컬 GGUF)</td><td>CPU 추론</td><td>온보딩·이력서·핸드오프 문장 · env-gate(경로 설정 시)</td><td><span class="tag t-used">사용됨</span></td></tr>
+    <tr><td>Gemma-4-E4B (Q4 GGUF)</td><td>로컬</td><td>바이크오프 최고 품질(5.15GB, RAG 통합 검증, source=local)</td><td><span class="tag t-used">사용됨</span></td></tr>
+    <tr><td>EXAONE-3.5-2.4B · Kanana-Nano-2.1B</td><td>로컬</td><td>저사양 한국어 스위트스팟(바이크오프 검증)</td><td><span class="tag t-used">사용됨</span></td></tr>
+    <tr><td>Anthropic API (claude-sonnet-5)</td><td>클라우드</td><td>키 설정 시 라이브 문장 생성(<code>anthropic</code> SDK, 선택)</td><td><span class="tag t-plan">사용 예정</span></td></tr>
+    <tr><td>Qwen3.5-4B</td><td>로컬</td><td>바이크오프 비교 대상</td><td><span class="tag t-poss">사용 가능</span></td></tr>
+  </table></div>
+  <div class="note"><b>런타임 상태(정직 고지):</b> 현재 공유 venv에는 <b>STT 계열만 상주</b>(faster-whisper·ctranslate2·av·onnxruntime). <b>로컬 LLM(llama-cpp-python)·RAG(sentence-transformers/torch)는 구현·바이크오프 검증을 마쳤으나 무거운 의존성은 저사양 대응으로 미상주</b> → 지금 구동 서버는 해당 경로가 폴백. 설치·경로 설정 시 즉시 활성(env-gate 설계).</div>
+
+  <!-- ── 7. RAG ── -->
+  <h2><span class="ic">🔎</span> 7. RAG (검색 증강)</h2>
+  <div class="scroll"><table>
+    <tr><th>기술/모델</th><th>형태</th><th>역할</th><th>상태</th></tr>
+    <tr><td>sentence-transformers</td><td>임베딩</td><td>코사인 top-k + 유사도 임계(오염 방지) — 구현·검증</td><td><span class="tag t-used">사용됨</span></td></tr>
+    <tr><td>ko-sroberta-multitask</td><td>110M</td><td>저사양 기본 임베딩 모델</td><td><span class="tag t-used">사용됨</span></td></tr>
+    <tr><td>BGE-M3</td><td>568M</td><td>실서버 권장이나 랩탑 OOM(2.2GB) → 대체</td><td><span class="tag t-poss">사용 가능</span></td></tr>
+    <tr><td>Kanana-embedding</td><td>임베딩</td><td>국산 고성능 임베딩 대안</td><td><span class="tag t-poss">사용 가능</span></td></tr>
+  </table></div>
+
+  <!-- ── 8. 외부 API / 공공데이터 ── -->
+  <h2><span class="ic">🏛️</span> 8. 외부 API · 공공데이터</h2>
+  <div class="lead">현재는 전부 <b>seed(예시)</b> + 출처 병기. 실서비스는 아래 공공 API로 대체(자격: 개인 회원가입 무료).</div>
+  <div class="scroll"><table>
+    <tr><th>API/소스</th><th>용도</th><th>트랙</th><th>상태</th></tr>
+    <tr><td>seed 데이터셋(공고·업종·지원사업)</td><td>데모 구동용 예시</td><td>공통</td><td><span class="tag t-used">사용됨</span></td></tr>
+    <tr><td>소진공 상가(상권)정보</td><td>업종 지식베이스·상권 밀도(Level 2)</td><td>창업</td><td><span class="tag t-plan">사용 예정</span></td></tr>
+    <tr><td>국세통계(업종별 폐업률)</td><td>리스크 테이블</td><td>창업</td><td><span class="tag t-plan">사용 예정</span></td></tr>
+    <tr><td>기업마당(bizinfo) 지원사업 API</td><td>지원사업 자동 매칭(STEP 6)</td><td>창업</td><td><span class="tag t-plan">사용 예정</span></td></tr>
+    <tr><td>국가법령정보센터 Open API</td><td>인허가 원문(RAG 인용·환각방지)</td><td>창업</td><td><span class="tag t-plan">사용 예정</span></td></tr>
+    <tr><td>NCS 기준정보 · NCS↔KECO 코드매핑</td><td>경력→업종 매핑 다리</td><td>창업</td><td><span class="tag t-plan">사용 예정</span></td></tr>
+    <tr><td>고용24 / data.go.kr 워크넷</td><td>채용공고(재취업)</td><td>재취업</td><td><span class="tag t-plan">사용 예정</span></td></tr>
+    <tr><td>Google Meet 링크</td><td>화상 면접(국산 API 미확보 폴백)</td><td>재취업</td><td><span class="tag t-used">사용됨</span></td></tr>
+    <tr><td>국산 화상 API(구루미 등)</td><td>Meet 대체</td><td>재취업</td><td><span class="tag t-poss">사용 가능</span></td></tr>
+  </table></div>
+
+  <!-- ── 9. 툴링/인프라 ── -->
+  <h2><span class="ic">🧰</span> 9. 툴링 · 인프라</h2>
+  <div class="scroll"><table>
+    <tr><th>기술</th><th>역할</th><th>상태</th></tr>
+    <tr><td>HuggingFace Hub (1.22.0)</td><td>STT/임베딩/LLM 모델 다운로드</td><td><span class="tag t-used">사용됨</span></td></tr>
+    <tr><td>Windows 대응</td><td><code>HF_HUB_DISABLE_SYMLINKS=1</code>(WinError 1314), 워킹셋 트리밍(RAM 확보)</td><td><span class="tag t-used">사용됨</span></td></tr>
+    <tr><td>공유 venv</td><td>두 트랙(8090/8091)이 동일 venv·requirements 공유</td><td><span class="tag t-used">사용됨</span></td></tr>
+    <tr><td>numpy 2.5.1 / tokenizers 0.23.1</td><td>STT·임베딩 수치·토큰화 의존</td><td><span class="tag t-used">사용됨</span></td></tr>
+    <tr><td>Docker / CI</td><td>배포·자동화(실서비스 단계)</td><td><span class="tag t-poss">사용 가능</span></td></tr>
+  </table></div>
+
+  <div class="foot">
+    생성: 2026-07-08 21:07 · 근거: 코드(requirements.txt·config·domain)·<code>pip list</code>(공유 venv 실측)·세션 리서치/바이크오프·<code>reports/</code> 이력.<br>
+    상태 표기는 오늘 시점 기준이며, seed·fallback·env-gate 항목은 화면/응답 <code>meta.source</code>로 정직하게 노출됨(RULE §1). 버전은 공유 venv 실측값.
+  </div>
+
+</div>
+</body>
+</html>

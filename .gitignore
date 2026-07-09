@@ -1,0 +1,32 @@
+# ── Python ──
+.venv/
+**/.venv/
+__pycache__/
+**/__pycache__/
+*.pyc
+.pytest_cache/
+**/.pytest_cache/
+
+# ── 환경/비밀 ──
+.env
+**/.env
+*.key
+
+# ── 로그/모델/캐시 ──
+*.log
+*.gguf
+*.bin
+*.wav
+hf/
+**/models--*/
+
+# ── 에디터/OS ──
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# ── 개인정보·대용량 기획자료(공개 저장소 제외) ──
+init_plans/
+output/
+release/

@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RAG 임베딩 모델 선정 — BGE-M3 대안 조사 (2026-07-09)</title>
+<style>
+  :root{--bg:#0f1420;--card:#182234;--card2:#1e2a40;--line:#2b3a55;--tx:#e6edf7;--mut:#93a3bd;
+    --acc:#4da3ff;--good:#37d39b;--warn:#ffb454;--poss:#a98bff;--bad:#ff6b6b;--gold:#ffd34d}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--tx);font:14.5px/1.62 -apple-system,"Segoe UI",Roboto,"Malgun Gothic",sans-serif}
+  .wrap{max-width:1060px;margin:0 auto;padding:30px 22px 80px}
+  h1{font-size:24px;margin:0 0 4px;letter-spacing:-.3px}
+  .sub{color:var(--mut);font-size:13px;margin-bottom:18px}
+  h2{font-size:18px;margin:30px 0 8px;padding-top:15px;border-top:1px solid var(--line)}
+  .lead{color:var(--mut);font-size:13px;margin:2px 0 12px}
+  .tldr{background:linear-gradient(135deg,#1a2b45,#182234);border:1px solid #315a8a;border-radius:14px;padding:16px 18px;margin:16px 0}
+  .tldr b{color:var(--gold)}
+  table{width:100%;border-collapse:collapse;margin:10px 0;font-size:13px}
+  th,td{padding:8px 10px;text-align:left;border-bottom:1px solid var(--line);vertical-align:top}
+  th{color:var(--mut);font-size:11px;text-transform:uppercase;letter-spacing:.4px;font-weight:600}
+  tr:hover td{background:rgba(255,255,255,.02)}
+  .num{font-variant-numeric:tabular-nums;font-weight:700}
+  .pill{display:inline-block;padding:1px 8px;border-radius:20px;font-size:10.5px;font-weight:800;white-space:nowrap}
+  .p-pri{background:rgba(255,211,77,.16);color:var(--gold)}
+  .p-alt{background:rgba(77,163,255,.16);color:var(--acc)}
+  .p-lite{background:rgba(55,211,155,.16);color:var(--good)}
+  .p-old{background:rgba(147,163,189,.16);color:var(--mut)}
+  code{background:#0c1220;padding:1px 6px;border-radius:5px;font-size:12px;color:#a8d3ff}
+  .scroll{overflow-x:auto}
+  .note{background:var(--card);border:1px solid var(--line);border-left:3px solid var(--gold);border-radius:0 10px 10px 0;padding:12px 15px;margin:14px 0;font-size:12.5px;color:var(--mut);line-height:1.6}
+  .note b{color:var(--tx)}
+  .rank{display:flex;gap:12px;align-items:flex-start;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin:10px 0}
+  .rank .n{flex:none;width:28px;height:28px;border-radius:50%;display:grid;place-items:center;font-weight:800;font-size:14px}
+  .r1 .n{background:var(--gold);color:#1a1400}.r2 .n{background:#9fb4d4;color:#0d1421}.r3 .n{background:#7a5a34;color:#fff}
+  .rank h3{margin:0 0 3px;font-size:15px}
+  .rank .why{color:var(--mut);font-size:12.5px;line-height:1.55}
+  ul{margin:6px 0 6px -6px;padding-left:22px}li{margin:3px 0}
+  .foot{color:var(--mut);font-size:11.5px;margin-top:20px;line-height:1.7}
+  a{color:var(--acc)}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <h1>RAG 임베딩 모델 선정 — "BGE-M3보다 나은 거 없나?"</h1>
+  <div class="sub">2026-07-09 03:29 · 대상: 「다시,출근」 RAG(인허가·지원사업·이력서 원문 검색) · 제약: 한국어 공공문서 · 저사양 CPU(데모)→Oracle 24GB(실서버) · pgvector</div>
+
+  <div class="tldr">
+    <b>결론.</b> BGE-M3(2024초)보다 나은 선택지 있음. 다만 <b>"오늘자 한국어 1등"을 공개 리더보드로 단정할 순 없다</b>(한국어 직접비교 데이터 공백). 실무 정답 = <b>저사양 데모 → EmbeddingGemma-300M</b>(OOM 회피), <b>실서버 → KURE-v1</b>(한국어 검증 1위) 또는 <b>Qwen3-Embedding</b>(다국어 최강·확장). <b>최종은 우리 인허가·지원사업 코퍼스로 자체 A/B</b>(finetune/eval 하네스 재활용). BGE-M3는 "기존/폴백"으로 내림.
+  </div>
+
+  <!-- 1. 한국어 리더보드 실측 -->
+  <h2>1. 한국어 특화 리더보드 (권위 원본 실측)</h2>
+  <div class="lead">고려대 nlpai-lab <b>MTEB-ko-retrieval</b> 리더보드 직접 확인. Recall@1 기준(높을수록 좋음).</div>
+  <div class="scroll"><table>
+    <tr><th>순위</th><th>모델</th><th>Recall@1</th><th>비고</th></tr>
+    <tr><td class="num">1</td><td><b>KURE-v1</b> (고려대) <span class="pill p-pri">주 추천</span></td><td class="num" style="color:var(--good)">0.526</td><td>한국어 검색 특화 · 긴 문서 강함</td></tr>
+    <tr><td class="num">2</td><td>dragonkue/BGE-m3-ko</td><td class="num">0.524</td><td>BGE-M3 한국어 파인튜닝 (거의 동률)</td></tr>
+    <tr><td class="num">3</td><td>BAAI/bge-m3 <span class="pill p-old">기존</span></td><td class="num">0.518</td><td>현재 우리 계획 모델</td></tr>
+    <tr><td class="num">4</td><td>KoE5</td><td class="num">0.502</td><td>multilingual-e5 한국어 파인튜닝(경량)</td></tr>
+  </table></div>
+  <div class="note"><b>정직 고지 2가지:</b> ① 이 리더보드는 <b>2024.12.21 최종 갱신</b>이고 이후 업데이트 없음 → <b>Qwen3-Embedding(2025)·EmbeddingGemma가 미등록</b>. ② 1~3위 차이가 <b>소수점(0.526/0.524/0.518)</b>이라 사실상 접전 — "KURE 압승"은 과장. <b>KURE-v2는 존재하지 않음.</b></div>
+
+  <!-- 2. 다국어 최강 -->
+  <h2>2. 다국어 SOTA (전 세계 기준)</h2>
+  <div class="scroll"><table>
+    <tr><th>모델</th><th>MTEB 다국어</th><th>특징</th></tr>
+    <tr><td><b>Qwen3-Embedding</b> (Alibaba) <span class="pill p-alt">대안</span></td><td class="num" style="color:var(--good)">70.58 (1위)</td><td>100+ 언어 · 32k 컨텍스트 · <b>MRL 차원축소(32~4096)</b> · Apache 2.0 · 0.6B~8B</td></tr>
+    <tr><td>BAAI/bge-m3</td><td class="num">63.0</td><td>dense+sparse <b>하이브리드</b> 단일모델 · 8k</td></tr>
+    <tr><td>NV-Embed-v2 / Voyage-3-large / Cohere Embed v4</td><td>상위권</td><td>NVIDIA/상용 · Cohere는 멀티모달(PDF·이미지, 128k)</td></tr>
+  </table></div>
+  <div class="note"><b>핵심:</b> Qwen3-Embedding이 다국어 1위(BGE-M3 대비 +7.6점)지만 <b>위 한국어 리더보드엔 미등록</b> → KURE와 한국어 직접비교 수치는 공개된 게 없음. 그래서 "둘 중 누가 한국어 1등"은 우리 데이터로 재봐야 함.</div>
+
+  <!-- 3. 2026 신규 -->
+  <h2>3. 2026 신규 — 올해 나온 것</h2>
+  <div class="lead">한국어 "특화" 신규는 없음(KURE-v1이 여전히 최신). 그러나 우리 저사양 제약에 유효한 범용 신규가 있음.</div>
+  <div class="scroll"><table>
+    <tr><th>모델</th><th>크기</th><th>왜 주목</th></tr>
+    <tr><td><b>EmbeddingGemma-300M</b> (Google, Gemma3 기반) <span class="pill p-lite">경량 신규</span></td><td class="num">300M</td><td><b>초경량 다국어(100+ 언어)</b> → BGE-M3/KURE가 랩탑서 냈던 <b>OOM을 크기로 회피</b>. 저사양 데모에 최적</td></tr>
+    <tr><td>Cohere Embed v4</td><td>API</td><td>128k 컨텍스트 · 멀티모달 · 상용</td></tr>
+    <tr><td>OpenAI text-embedding-3</td><td>API</td><td>다국어(MIRACL) 개선 · 상용</td></tr>
+  </table></div>
+  <div class="note"><b>2026 트렌드 인사이트:</b> MMTEB 결과상 <b>비영어권은 "모델 크기"보다 "다국어 학습 데이터 비중"이 더 중요</b> — 영어 위주 7B가 다국어 560M한테 밀리기도 함. → 한국어엔 무조건 큰 모델을 쫓을 필요 없음(경량 다국어/한국어특화가 실용적). 평가도 MTEB v2·MMTEB(250+ 언어)로 확장됨.</div>
+
+  <!-- 4. 우리 상황 매핑 -->
+  <h2>4. 우리 제약에 매핑 (RAM·서버)</h2>
+  <div class="scroll"><table>
+    <tr><th>환경</th><th>가용 자원</th><th>맞는 모델</th></tr>
+    <tr><td>현재 데모 랩탑</td><td>가용 RAM 적음(BGE-M3 ~2.2GB OOM 경험)</td><td><b>EmbeddingGemma-300M</b> · Qwen3-Embedding-0.6B · KoE5</td></tr>
+    <tr><td>실서버(Oracle 24GB)</td><td>충분</td><td><b>KURE-v1</b> · Qwen3-Embedding(4B) · BGE-m3-ko</td></tr>
+  </table></div>
+
+  <!-- 5. 최종 추천 -->
+  <h2>5. 최종 추천</h2>
+  <div class="rank r1"><div class="n">1</div><div>
+    <h3>KURE-v1 — 실서버 주력 (한국어 검증 1위)</h3>
+    <div class="why">한국어 공공문서(인허가·지원사업) 검색에 검증된 1위. Oracle 24GB에서 무리 없음. GGUF 경량본도 존재. 단 랩탑에선 OOM 주의(~2.2GB).</div>
+  </div></div>
+  <div class="rank r2"><div class="n">2</div><div>
+    <h3>EmbeddingGemma-300M — 저사양 데모 주력 (신규·초경량)</h3>
+    <div class="why">300M로 <b>OOM 없이</b> 데모 랩탑에서 구동. 2026 신규 다국어(한국어 포함). 데모→실서버 전환 전까지 현실적 기본값.</div>
+  </div></div>
+  <div class="rank r3"><div class="n">3</div><div>
+    <h3>Qwen3-Embedding — 다국어·확장 대안</h3>
+    <div class="why">MTEB 다국어 1위, MRL로 벡터 차원 축소(pgvector 저장·속도 이득), Apache 2.0. 0.6B는 CPU도 OK. 한국어 직접검증은 자체 A/B 필요.</div>
+  </div></div>
+  <div class="note"><b>진짜 결정 = 자체 A/B.</b> 공개 리더보드에 한국어 직접비교가 없으므로, Oracle 서버에서 <b>우리 인허가·지원사업 코퍼스</b>로 KURE-v1 vs EmbeddingGemma vs Qwen3를 <code>finetune/eval</code> 하네스로 직접 측정하는 게 유일하게 정확한 답. <b>BGE-M3는 "기존/폴백"으로 유지</b>(3위, 여전히 무난).</div>
+
+  <!-- 6. 스택 반영안 -->
+  <h2>6. 기술스택 반영안</h2>
+  <div class="scroll"><table>
+    <tr><th>구분</th><th>모델</th></tr>
+    <tr><td>RAG 임베딩 — 주(실서버)</td><td><b>KURE-v1</b></td></tr>
+    <tr><td>RAG 임베딩 — 경량(데모/저사양)</td><td><b>EmbeddingGemma-300M</b></td></tr>
+    <tr><td>RAG 임베딩 — 대안(다국어·확장)</td><td>Qwen3-Embedding</td></tr>
+    <tr><td>RAG 임베딩 — 기존/폴백</td><td>BGE-M3 (현재 데모는 ko-sroberta로 임시 구동)</td></tr>
+  </table></div>
+
+  <div class="foot">
+    생성: 2026-07-09 03:29 · 근거: 고려대 nlpai-lab MTEB-ko 리더보드 직접 확인(2024.12) · 2025~2026 다국어 벤치/블로그 교차 확인.<br>
+    출처: <a href="https://github.com/nlpai-lab/KURE">KURE MTEB-ko 리더보드(nlpai-lab)</a> · <a href="https://huggingface.co/nlpai-lab/KURE-v1">KURE-v1(HF)</a> · <a href="https://github.com/QwenLM/Qwen3-Embedding">Qwen3-Embedding</a> · <a href="https://www.bentoml.com/blog/a-guide-to-open-source-embedding-models">Open-Source Embedding Models 2026(BentoML)</a> · <a href="https://milvus.io/blog/choose-embedding-model-rag-2026.md">Milvus 2026 가이드(EmbeddingGemma)</a><br>
+    수치는 각 벤치의 테스트셋·시점에 종속. 한국어 직접비교(KURE vs Qwen3/EmbeddingGemma)는 공개 데이터 없음 → 실서버 자체 검증 필요.
+  </div>
+
+</div>
+</body>
+</html>

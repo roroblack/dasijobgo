@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>다시,출근 — 구현 현황 대시보드 (LLM+RAG 통합)</title>
+<style>
+:root{
+  --bg:#EAE6DD;--ink:#1B1F26;--ink2:#48505C;--ink3:#79808C;--line:#DDD8CC;--card:#fff;
+  --brand:#1A4A5A;--brand-tint:#E1ECEF;--apricot:#D97B2E;--apricot-tint:#FBEAD6;
+  --sage:#3F7350;--sage-tint:#E1EDE3;--muted-tint:#F2EFE8;
+  --disp:'Gowun Batang',serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Pretendard','Apple SD Gothic Neo',system-ui,sans-serif;background:var(--bg);
+  color:var(--ink);line-height:1.6;padding:40px 20px 80px}
+.wrap{max-width:1000px;margin:0 auto}
+.tag{display:inline-flex;align-items:center;gap:8px;font-size:.78rem;font-weight:700;color:var(--brand);
+  background:var(--brand-tint);border:1px solid #CFE0E3;padding:6px 14px;border-radius:100px}
+h1{font-family:var(--disp);font-size:clamp(24px,3vw,34px);margin:14px 0 6px;line-height:1.25}
+h1 .em{color:var(--brand)}
+.sub{color:var(--ink2);font-size:.95rem;max-width:720px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:22px 24px;margin-top:22px}
+h2{font-size:1.15rem;margin-bottom:6px;display:flex;align-items:center;gap:9px}
+h2 .n{width:26px;height:26px;border-radius:8px;background:var(--brand);color:#fff;font-size:.8rem;
+  display:flex;align-items:center;justify-content:center;font-family:var(--disp)}
+.note{font-size:.84rem;color:var(--ink3);margin-bottom:14px}
+.legend{display:flex;flex-wrap:wrap;gap:16px;margin-bottom:18px}
+.legend span{display:inline-flex;align-items:center;gap:7px;font-size:.82rem;color:var(--ink2)}
+.legend i{width:13px;height:13px;border-radius:4px;display:inline-block}
+.seclab{font-size:.82rem;font-weight:700;color:var(--ink3);margin:18px 0 9px}
+.bars{display:flex;flex-direction:column;gap:11px}
+.bar{display:flex;align-items:center;gap:12px;font-size:.86rem}
+.bar .bl{width:170px;color:var(--ink)}
+.bar .bt{flex:1;height:11px;background:var(--muted-tint);border-radius:100px;overflow:hidden}
+.bar .bt i{display:block;height:100%;background:var(--brand);border-radius:100px}
+.bar .bv{width:38px;text-align:right;color:var(--ink2);font-weight:700}
+.grid{display:grid;gap:9px}
+.g12{grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}
+.g5{grid-template-columns:repeat(auto-fit,minmax(118px,1fr))}
+.chip{border-radius:10px;padding:10px 12px;display:flex;flex-direction:column;gap:3px}
+.chip .ct{font-size:.72rem;font-weight:700;display:flex;align-items:center;gap:5px}
+.chip .cn{font-size:.86rem;color:var(--ink)}
+.layers{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:0 26px}
+.lrow{display:flex;align-items:center;gap:9px;font-size:.86rem;padding:8px 0;border-bottom:1px solid var(--line)}
+.lrow .ld{width:10px;height:10px;border-radius:50%;flex:0 0 auto}
+.lrow .lt{margin-left:auto;font-size:.76rem;font-weight:700}
+.s-real{background:var(--sage-tint);color:var(--sage)}
+.s-seed{background:var(--apricot-tint);color:var(--apricot)}
+.s-ui{background:var(--brand-tint);color:var(--brand)}
+.s-none{background:var(--muted-tint);color:var(--ink3)}
+.d-real{background:var(--sage)}.d-seed{background:var(--apricot)}.d-ui{background:var(--brand)}.d-none{background:var(--ink3)}
+.pill{display:inline-block;font-size:.72rem;font-weight:700;padding:3px 9px;border-radius:100px;margin-left:4px}
+.p-real{background:var(--sage-tint);color:var(--sage)}
+.kv{display:flex;flex-wrap:wrap;gap:10px;margin:4px 0 14px}
+.kv div{background:var(--muted-tint);border-radius:10px;padding:9px 13px;font-size:.83rem}
+.kv b{color:var(--brand)}
+.quote{background:var(--sage-tint);border:1px solid #C6DCC9;border-left:4px solid var(--sage);
+  border-radius:0 12px 12px 0;padding:14px 16px;font-size:.9rem;color:var(--ink);line-height:1.65;margin-top:6px}
+ul{margin:6px 0 0 18px;font-size:.88rem;color:var(--ink2);line-height:1.7}
+ul b{color:var(--ink)}
+code{font-family:'JetBrains Mono',ui-monospace,monospace;font-size:.82em;background:var(--muted-tint);
+  padding:1px 6px;border-radius:5px;color:var(--brand)}
+.warn{background:var(--apricot-tint);border:1px solid #EAD3A9;border-radius:12px;padding:13px 16px;
+  font-size:.85rem;color:var(--ink2);line-height:1.6;margin-top:14px}
+footer{text-align:center;color:var(--ink3);font-size:.8rem;margin-top:36px;line-height:1.7}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="tag">● 구현 현황 대시보드 · 2026-07-06 18:10</div>
+  <h1><span class="em">다시,출근</span> — 로컬 LLM(Gemma-4-E4B) + RAG 통합 후 현황</h1>
+  <p class="sub">설계(3대 축 · 화면 12단계 · 기능 계층) 대비 실제 코드 상태. 이번 통합으로 <b>LLM 문장 생성(로컬 GGUF)</b>과 <b>RAG 임베딩 검색</b>이 seed·폴백/미구현 → 실제로 전환됨. 진행률 %는 코드 기준 추정.</p>
+
+  <!-- 통합 검증 -->
+  <div class="card">
+    <h2><span class="n">✓</span>이번 통합 — 실동작 검증 <span class="pill p-real">source: local</span></h2>
+    <div class="note">첨부 생성 모듈을 실제 백엔드(<code>resume_usecase.build_resume</code>)에 배선. Gemma-4-E4B(GGUF)를 로컬 우선 백엔드로, RAG(임베딩 검색)를 자소서 프롬프트에 주입. 실제 usecase 호출로 검증.</div>
+    <div class="kv">
+      <div>생성 모델 <b>Gemma-4-E4B (Q4 GGUF, llama.cpp)</b></div>
+      <div>임베딩 <b>ko-sroberta</b> (실서버 BGE-M3/Kanana-emb)</div>
+      <div>검색 top-2 <b>ex_qc 0.597 · ex_maint 0.472</b> (임계값 0.45)</div>
+      <div>지연 <b>54.1s</b> (CPU·무GPU)</div>
+    </div>
+    <div class="quote">생성 자소서 (source=local, RAG 주입): "25년간 품질검사를 담당하며 검사장비를 활용하여 공정 데이터를 분석하고 불량 원인을 체계적으로 추적해왔습니다. … 재발 방지 표준을 수립하며 제품의 신뢰도를 높이는 역할을 수행했습니다."<br><span style="color:var(--sage);font-weight:700;font-size:.82rem">→ 물류센터 등 예시 오염 0 · 25년 등 지원자 사실 정확 · RAG 예시는 문체 참고로만 사용</span></div>
+    <div class="seclab">배선·추가된 파일</div>
+    <ul>
+      <li><code>infrastructure/llm/client.py</code> — 로컬 GGUF 백엔드 추가(<b>local → API → 템플릿</b> 우선순위, 지연 로드 싱글턴)</li>
+      <li><code>infrastructure/rag/</code> — 신규: 임베딩 검색(코사인 top-k + <b>유사도 임계값</b>으로 오염 방지)</li>
+      <li><code>application/resume_usecase.py</code> — RAG 예시 주입 + "예시 사실 베끼지 말 것" 규칙 + 응답에 <code>rag</code> 메타</li>
+      <li><code>config.py</code> — <code>LLM_GGUF_PATH · RAG_EMB_MODEL · RAG_MIN_SIM</code> 등 env</li>
+    </ul>
+    <div class="warn">⚠️ 정직한 한계: Gemma-4-E4B(5.15GB)는 이 노트북에서 페이징으로 느림(54s). 실서버는 GPU + BGE-M3/Kanana-emb 권장. 미설정 시 자동으로 API→템플릿 폴백(데모 지속). 모델 없는 환경도 <code>rag</code> 검색은 동작(위 fast 검증).</div>
+  </div>
+
+  <!-- 대시보드 -->
+  <div class="card">
+    <h2><span class="n">▤</span>구현 현황 대시보드</h2>
+    <div class="legend" id="legend"></div>
+    <div class="seclab">설계 3대 축 · 대략 진행률 (LLM+RAG 통합 후 · 추정)</div>
+    <div class="bars" id="bars"></div>
+    <div class="seclab">구직자 화면 흐름 (설계 12단계)</div>
+    <div class="grid g12" id="seeker"></div>
+    <div class="seclab">기업(채용담당) 화면 (설계 5단계)</div>
+    <div class="grid g5" id="company"></div>
+    <div class="seclab">핵심 기능 계층 (★ 이번 통합: LLM 로컬 GGUF · RAG 임베딩 검색)</div>
+    <div class="layers" id="layers"></div>
+  </div>
+
+  <!-- 남은 과제 -->
+  <div class="card">
+    <h2><span class="n">→</span>남은 부족분 (미구현)</h2>
+    <ul>
+      <li><b>PART 2 아바타</b> — TTS·립싱크(Wav2Lip/MuseTalk)·웹캠 녹화·STT 전부 미구현 (가장 큰 공백)</li>
+      <li><b>PART 3</b> — 역량 근거추출(NCS rubric) 분석 파이프라인 미구현 (RAG 인프라는 생김)</li>
+      <li><b>외부 API</b> — 고용24·국세청·내일배움카드·Google Meet 미연동 (현재 seed)</li>
+      <li><b>기업 클라이언트 5화면</b> · <b>DB(PostgreSQL)</b> — 미구현</li>
+    </ul>
+    <div class="warn">다음 우선순위: ① 자소서 few-shot 3~5개 확충(정렬 실측서 오염↓ 확인) ② RAG reranker·임계값 튜닝 ③ 실서버 BGE-M3/Kanana-emb + GPU ④ 아바타 파이프라인(예선 집중).</div>
+  </div>
+
+  <footer>
+    다시,출근 · 로컬 LLM+RAG 통합 현황 · 2026-07-06<br>
+    근거: <code>reports/final-model-eval-2026-07-06_1758.md</code> · <code>output/integration_full.json</code> · <code>output/fewshot_align_compare.md</code>
+  </footer>
+</div>
+
+<script>
+const S={real:{c:'s-real',d:'d-real',t:'실제 (결정론·백엔드)',lab:'실제'},
+ seed:{c:'s-seed',d:'d-seed',t:'seed·폴백',lab:'seed'},
+ ui:{c:'s-ui',d:'d-ui',t:'UI만',lab:'UI만'},
+ none:{c:'s-none',d:'d-none',t:'미구현',lab:'미구현'}};
+const seeker=[['시작','정부지원','seed'],['STEP 1','온보딩','seed'],['STEP 1.5','이력서 확인','ui'],
+ ['STEP 2','실시간 매칭','real'],['STEP 3','장바구니','seed'],['STEP 4','맞춤 이력서','real'],
+ ['STEP 5','확인·제출','seed'],['STEP 7','면접 준비','seed'],['STEP 8','아바타 면접','ui'],
+ ['STEP 9','피드백·대기','seed'],['STEP 6','실면접 일정','real'],['STEP 10','교육·재지원','seed']];
+const company=[['기업 1','가입'],['기업 2','질문 작성'],['기업 3','지원자 검토'],['기업 4','일정·출근'],['기업 5','결과']];
+const bars=[['PART 1 · 진입·서류',68],['PART 2 · 가상 면접',22],['PART 3 · 성장 루프',52],['기업 화면',0]];
+const layers=[['클린아키텍처 골격','real'],['매칭 점수 (결정론)','real'],['일정 교집합 (결정론)','real'],
+ ['역량 등급 (결정론)','real'],['응답봉투·출처표기','real'],['면접 질문 생성','real'],
+ ['LLM 문장 생성 (로컬 GGUF)','real'],['RAG 임베딩 검색','real'],['공고·훈련 데이터','seed'],
+ ['역량 근거추출 (NCS rubric)','none'],['STT 음성 입력','none'],['TTS·아바타·립싱크','none'],
+ ['웹캠 녹화','none'],['외부 API 연동','none'],['DB (PostgreSQL)','none'],['기업 클라이언트','none']];
+document.getElementById('legend').innerHTML=Object.values(S).map(v=>`<span><i class="${v.d}"></i>${v.t}</span>`).join('');
+document.getElementById('bars').innerHTML=bars.map(([l,v])=>`<div class="bar"><span class="bl">${l}</span><span class="bt"><i style="width:${v}%"></i></span><span class="bv">${v}%</span></div>`).join('');
+const chip=(t,n,s)=>`<div class="chip ${S[s].c}"><span class="ct">${t}</span><span class="cn">${n}</span></div>`;
+document.getElementById('seeker').innerHTML=seeker.map(r=>chip(r[0],r[1],r[2])).join('');
+document.getElementById('company').innerHTML=company.map(r=>chip(r[0],r[1],'none')).join('');
+document.getElementById('layers').innerHTML=layers.map(([l,s])=>`<div class="lrow"><span class="ld ${S[s].d}"></span><span>${l}</span><span class="lt ${S[s].c}" style="padding:3px 9px;border-radius:100px">${S[s].lab}</span></div>`).join('');
+</script>
+</body>
+</html>
